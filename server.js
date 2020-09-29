@@ -51,11 +51,17 @@ wsServer.on('request', function(request) {
 
   connection.on('message', function(message) {
     if (message.type === 'utf8') {
-      console.log(message);
+      connections.forEach(conn => {
+        conn.sendUTF(message.utf8Data)
+      })
     }
   });
 
-  connection.on('close', function(connection) {
-    console.log("close conn");
+  connection.on('close', function() {
+    const index = connections.indexOf(connection);
+    if (index !== -1) {
+      connections.splice(index, 1);
+    }
+    console.log(connections.map(el => ({ id: el.id, key: el.key })))
   });
 });
