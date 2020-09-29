@@ -45,7 +45,7 @@ wsServer.on('request', function(request) {
   connection.key = request.key;
   connection.id = verify.id;
 
-  connections.push(connection);
+  connections.push(connection); // TODO: trocar por redis set
 
   console.log(connections.map(el => ({ id: el.id, key: el.key })))
 
