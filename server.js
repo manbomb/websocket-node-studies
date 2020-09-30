@@ -1,6 +1,11 @@
 const WebSocketServer = require('websocket').server;
 const http = require('http');
 const jwt = require('jsonwebtoken');
+const redis = require('redis');
+
+const redisClient = redis.createClient({
+  port: 6379
+})
 
 const server = http.createServer();
 server.listen(8080, function() { });
@@ -49,13 +54,28 @@ wsServer.on('request', function(request) {
 
   console.log(connections.map(el => ({ id: el.id, key: el.key })))
 
-  connection.on('message', function(message) {
-    if (message.type === 'utf8') {
-      connections.forEach(conn => {
-        conn.sendUTF(message.utf8Data)
-      })
-    }
-  });
+  const ciclo = () => {
+    redisClient.keys('PUSH_*', (err, keys) => {
+      if (err) ciclo();
+      keys.forEach(key => {
+        const userId = parseInt(key.split("_")[1]);
+
+        redisClient.get(key, (err, data) => {
+          if (err) ciclo();
+          connections
+            .filter(conn => conn.id == userId)
+            .forEach(conn => {
+              conn.sendUTF(data);
+            });
+        });
+
+        redisClient.del(key);
+      });
+    });
+    setTimeout(_ => ciclo(), 100);
+  }
+
+  ciclo();
 
   connection.on('close', function() {
     const index = connections.indexOf(connection);
