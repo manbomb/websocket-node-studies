@@ -12,6 +12,7 @@
   "dependencies": {
     "http": "0.0.1-security",
     "jsonwebtoken": "^8.5.1",
+    "redis": "^3.0.2",
     "websocket": "^1.0.32"
   }
 }
